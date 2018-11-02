@@ -116,8 +116,10 @@ public class Images {
 	private static String imageFolder = "res"+File.separator+"images"+File.separator;
 	
 	static {		//Retrieve saved image map
+		File f = new File(imageFolder);
+		if(!f.exists()) f.mkdirs();
 		images = new HashMap<String, BufferedImage>();
-		File f = new File("res"+File.separator+"images"+File.separator+"images.dat");
+		f = new File("res"+File.separator+"images"+File.separator+"images.dat");
 		try {
 			FileInputStream fis = new FileInputStream(f);
 			ObjectInputStream ois = new ObjectInputStream(fis);
@@ -546,11 +548,6 @@ public class Images {
 	 */
 	private static void save() {
 		File f = new File(imageFolder+"images.dat");
-		
-		if(!f.getParentFile().exists()) {
-			Game.debugPrint("Creating folder \'"+f.getParent()+"\'");
-			f.getParentFile().mkdirs();
-		}
 		try {
 			if(f.exists()) {
 				Game.debugPrint("Deleting old version of \'"+f.getPath()+"\'");
