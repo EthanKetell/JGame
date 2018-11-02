@@ -102,9 +102,10 @@ public class World {
 			if(bgImage != null) {
 				g2.drawImage(bgImage.getImage(),-bgImage.getImage().getWidth()/2,-bgImage.getImage().getHeight()/2,null);
 			}
-				
-			for(Entity e : entities) {
-				e.rawPaint(g2);
+			if(drawEntity) {
+				for(Entity e : entities) {
+					e.rawPaint(g2);
+				}
 			}
 		}
 	}
@@ -240,6 +241,7 @@ public class World {
 	Paint 	fill = Color.DARK_GRAY,
 			bg = Color.BLACK;
 	private WorldPanel panel;
+	boolean running = true, drawEntity = true;
 	
 	Dimension frameSize, size;
 	Point mouse = new Point();
@@ -382,11 +384,40 @@ public class World {
 		return frame;
 	}
 	
+	/**
+	 * Pauses the {@linkplain World}, so it no longer updates it's {@linkplain Entity Entities}, and
+	 * if {@code hide} is {@code true}, hides the Entities until {@linkplain World#play()} is called
+	 * @param hide Whether to hide the entities until resume
+	 */
+	public void pause(boolean hide) {
+		this.running = false;
+		this.drawEntity = !hide;
+	}
+	
+	/**
+	 * Resumes {@linkplain Entity} updates and drawing
+	 */
+	public void play() {
+		this.running = true;
+		this.drawEntity = true;
+	}
+	
+	/**
+	 * Returns whether the {@linkplain World} is sending updates to it's {@linkplain Entity Entities}
+	 * @return Whether the world is running
+	 */
+	public boolean isRunning() {
+		return this.running;
+	}
+	
 	void paint() {
 		panel.repaint();
 	}
 	
 	void update() {
+		if(!running) {
+			return;
+		}
 		entities.removeAll(toRemove);
 		entities.addAll(toAdd);
 		toAdd.clear();

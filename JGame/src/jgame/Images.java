@@ -580,7 +580,6 @@ public class Images {
 		for(String name : images.keySet()) {
 			writeImage(name, images.get(name));
 		}
-		System.exit(0);
 	}
 	
 	private static void writeImage(String name, BufferedImage image) {
