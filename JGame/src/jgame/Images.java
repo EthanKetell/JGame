@@ -1,6 +1,7 @@
 package jgame;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FileDialog;
 import java.awt.Frame;
@@ -53,12 +54,13 @@ public class Images {
 	
 	private static class ImagePanel extends JPanel {
 		private static final long serialVersionUID = 1L;
+		private static TexturePaint tex;
 		BufferedImage activeImage;
 		
-		double scale = 1;
+		double scale = 1, rotation = 0;
 		
-		static BufferedImage texBase = new BufferedImage(10,10,BufferedImage.TYPE_INT_ARGB);
 		static {
+			BufferedImage texBase = new BufferedImage(10,10,BufferedImage.TYPE_INT_ARGB);
 			Graphics g = texBase.getGraphics();
 			g.setColor(new Color(0xAAAAAA));
 			g.fillRect(0, 0, 10, 10);
@@ -66,6 +68,7 @@ public class Images {
 			g.fillRect(0, 0, 5, 5);
 			g.fillRect(5, 5, 10, 10);
 			g.dispose();
+			tex = new TexturePaint(texBase, new Rectangle2D.Double(0,0,10,10));
 		}
 		
 		public ImagePanel() {
@@ -88,14 +91,12 @@ public class Images {
 		@Override
 		public void paintComponent(Graphics g) {
 			super.paintComponent(g);
-			Graphics2D g2 = (Graphics2D)g;
-			TexturePaint tex = new TexturePaint(texBase, new Rectangle2D.Double(0,0,10,10));
+			Graphics2D g2 = (Graphics2D)g.create();
 			g2.setPaint(tex);
 			g2.fillRect(0, 0, getWidth(), getHeight());
 			
-			AffineTransform oldAT = g2.getTransform();
-			
 			g2.translate(this.getWidth()/2, this.getHeight()/2);
+			g2.rotate(rotation);
 			g2.scale(scale, scale);
 			
 			if(activeImage != null) {
@@ -105,12 +106,8 @@ public class Images {
 						-activeImage.getHeight()/2,
 						null);
 			}
-			
-			g2.setTransform(oldAT);
 		}
-		
 	}
-	
 	private static Map<String, String> filePaths;
 	private static Map<String, BufferedImage> images;
 	private static String imageFolder = "res"+File.separator+"images"+File.separator;
@@ -173,7 +170,7 @@ public class Images {
 		listScroll.getViewport().add(listPane);
 		listScroll.setPreferredSize(new Dimension(60,240));
 		leftPanel.add(listScroll);
-		Box buttonBox = Box.createHorizontalBox();
+		Box controlBox = Box.createHorizontalBox();
 		JButton addButton = new JButton("+");
 		JButton removeButton = new JButton("-");
 		
@@ -208,10 +205,10 @@ public class Images {
 		
 		
 		
-		buttonBox.add(removeButton);
-		buttonBox.add(Box.createHorizontalGlue());
-		buttonBox.add(addButton);
-		leftPanel.add(buttonBox);
+		controlBox.add(removeButton);
+		controlBox.add(Box.createHorizontalGlue());
+		controlBox.add(addButton);
+		leftPanel.add(controlBox);
 		
 		listScroll.setBorder(BorderFactory.createCompoundBorder(
 				BorderFactory.createEmptyBorder(5,5,5,5),
@@ -228,60 +225,67 @@ public class Images {
 				BorderFactory.createLoweredBevelBorder()));
 		rightPanel.add(imageScroll);
 		
-		buttonBox = Box.createHorizontalBox();
-		JButton rotLeft = new JButton("⤺");
-		@SuppressWarnings("serial")
-		JButton rotRight = new JButton("⤺") {
-			@Override
-			public void paintComponent(Graphics g) {
-				Graphics2D g2 = (Graphics2D)g.create();
-				g2.translate(getWidth()/2, 0);
-				g2.scale(-1, 1);
-				g2.translate(-getWidth()/2,0);
-				super.paintComponent(g2);
-			}
-		};
+		controlBox = Box.createHorizontalBox();
+		controlBox.add(Box.createHorizontalGlue());
 		
-		JSlider scale = new JSlider(-100,100);
+		Box control = Box.createVerticalBox();
+		JLabel label = new JLabel("rotation");
+		label.setAlignmentX(Component.CENTER_ALIGNMENT);
+		control.add(label);
+		JSlider rotSlider = new JSlider(-4,4);
+		control.add(rotSlider);
 		
-		buttonBox.add(rotLeft);
-		buttonBox.add(Box.createHorizontalGlue());
-		buttonBox.add(scale);
-		buttonBox.add(Box.createHorizontalGlue());
-		buttonBox.add(rotRight);
-		rightPanel.add(buttonBox);
+		controlBox.add(control);
+		controlBox.add(Box.createHorizontalGlue());
 		
-		rotLeft.addActionListener(e->{
-			String name = listPane.getSelectedValue();
-			if(name != null) {
-				images.put(name, Images.rotateImage(images.get(name), -90));
-				imageDisplay.setActiveImage(images.get(name));
-				imageScroll.getViewport().revalidate();
-			}
-		});
+		control = Box.createVerticalBox();
+		label = new JLabel("scale");
+		label.setAlignmentX(Component.CENTER_ALIGNMENT);
+		control.add(label);
+		JSlider scaleSlider = new JSlider(-100,100);
+		control.add(scaleSlider);
 		
-		rotRight.addActionListener(e->{
-			String name = listPane.getSelectedValue();
-			if(name != null) {
-				images.put(name, Images.rotateImage(images.get(name), 90));
-				imageDisplay.setActiveImage(images.get(name));
-				imageScroll.getViewport().revalidate();
-			}
-		});
-		scale.setMajorTickSpacing(10);
-		scale.addChangeListener(e->{
-			imageDisplay.scale = Math.pow(2, scale.getValue()/50.0);
+		controlBox.add(control);
+		controlBox.add(Box.createHorizontalGlue());
+		
+		rightPanel.add(controlBox);
+		
+		rotSlider.setSnapToTicks(true);
+		rotSlider.setPaintTicks(true);
+		rotSlider.setMajorTickSpacing(1);
+		rotSlider.addChangeListener(e->{
+			imageDisplay.rotation = rotSlider.getValue()*Math.PI/2;
 			imageDisplay.repaint();
 		});
-		scale.addMouseListener(new MouseAdapter() {
+		rotSlider.addMouseListener(new MouseAdapter() {
 			public void mouseReleased(MouseEvent e) {
 				String name = listPane.getSelectedValue();
 				if(name != null) {
-					images.put(name, Images.scaleImage(images.get(name), Math.pow(2, scale.getValue()/50.0)));
+					images.put(name, Images.rotateImage(images.get(name), imageDisplay.rotation));
+					imageDisplay.rotation = 0;
 					imageDisplay.setActiveImage(images.get(name));
 					imageScroll.getViewport().revalidate();
 				}
-				scale.setValue(0);
+				rotSlider.setValue(0);
+			}
+		});
+		
+		scaleSlider.setSnapToTicks(true);
+		scaleSlider.setMajorTickSpacing(10);
+		scaleSlider.addChangeListener(e->{
+			imageDisplay.scale = Math.pow(2, scaleSlider.getValue()/50.0);
+			imageDisplay.repaint();
+		});
+		scaleSlider.addMouseListener(new MouseAdapter() {
+			public void mouseReleased(MouseEvent e) {
+				String name = listPane.getSelectedValue();
+				if(name != null) {
+					images.put(name, Images.scaleImage(images.get(name), imageDisplay.scale));
+					imageDisplay.scale = 1;
+					imageDisplay.setActiveImage(images.get(name));
+					imageScroll.getViewport().revalidate();
+				}
+				scaleSlider.setValue(0);
 			}
 		});
 		
@@ -594,8 +598,7 @@ public class Images {
 	 * @param radians The angle to rotate by
 	 * @return A rotated image
 	 */
-	public static BufferedImage rotateImage(BufferedImage image, double degrees) {
-		double radians = Math.toRadians(degrees);
+	public static BufferedImage rotateImage(BufferedImage image, double radians) {
 		int newWidth = (int)(image.getHeight()*Math.abs(Math.sin(radians))+image.getWidth()*Math.abs(Math.cos(radians)));
 		int newHeight = (int)(image.getHeight()*Math.abs(Math.cos(radians))+image.getWidth()*Math.abs(Math.sin(radians)));
 		BufferedImage out = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
@@ -634,13 +637,12 @@ public class Images {
 	 * Returns an instance of the given {@link BufferedImage} transformed
 	 * by the given {@code degrees}, {@code sx}, and {@code sy}
 	 * @param image The image to transform
-	 * @param degrees The angle to rotate the image by
+	 * @param radians The angle to rotate the image by
 	 * @param sx The factor to scale the width of the image by
 	 * @Param sy The factor to scale the height of the image by
 	 * @return A copy of {@link image} with the transformations applied
 	 */
-	public static BufferedImage transformImage(BufferedImage image, double degrees, double sx, double sy) {
-		double radians = Math.toRadians(degrees);
+	public static BufferedImage transformImage(BufferedImage image, double radians, double sx, double sy) {
 		int scaleWidth = (int)(image.getWidth() * sx);
 		int scaleHeight = (int)(image.getHeight() * sy);
 		int newWidth = (int)(scaleHeight*Math.abs(Math.sin(radians))+scaleWidth*Math.abs(Math.cos(radians)));
