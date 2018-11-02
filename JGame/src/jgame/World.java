@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Paint;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
@@ -83,15 +84,20 @@ public class World {
 		
 		@Override
 		public void paintComponent(Graphics g) {
-			super.paintComponent(g);
 			Graphics2D g2 = (Graphics2D) g.create();
-			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-			
+			if(size != null) {
+				g2.setPaint(bg);
+				g2.fillRect(0, 0, getWidth(), getHeight());
+			}
 			g2.transform(getWorldTransform());
 			
 			if(size != null) {
 				g2.setClip(-size.width/2, -size.height/2, size.width, size.height);
+				g2.setPaint(fill);
+				g2.fillRect(-size.width/2, -size.height/2, size.width, size.height);
 			}
+			
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
 			if(bgImage != null) {
 				g2.drawImage(bgImage.getImage(),-bgImage.getImage().getWidth()/2,-bgImage.getImage().getHeight()/2,null);
@@ -231,6 +237,8 @@ public class World {
 	}
 	
 	JFrame frame;
+	Paint 	fill = Color.DARK_GRAY,
+			bg = Color.BLACK;
 	private WorldPanel panel;
 	
 	Dimension frameSize, size;
@@ -252,7 +260,9 @@ public class World {
 	private final void setupSwingComponents() {
 		frame = new JFrame();
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.getContentPane().setBackground(Color.BLACK);
 		panel = new WorldPanel();
+		panel.setOpaque(false);
 		panel.setBackground(Color.BLACK);
 		panel.addMouseListener(Controller.listener);
 		panel.addMouseMotionListener(Controller.listener);
@@ -265,20 +275,32 @@ public class World {
 	}
 	
 	/**
-	 * Sets the {@linkplain Color} to be used when drawing the {@linkplain World}
-	 * @param bg The desired background color
+	 * Sets the {@linkplain Paint} to be used filling the parts of the window not covered by the {@linkplain World}.
+	 * </br></br>
+	 * Note that {@linkplain Color} implements Paint
+	 * @param bg The desired background paint
 	 */
-	public void setBackgroundColor(Color bg) {
-		panel.setBackground(bg);
+	public void setBackground(Paint bg) {
+		this.bg = bg;
+	}
+	
+	/**
+	 * Sets the {@linkplain Paint} to be used when drawing the {@linkplain World}
+	 * </br></br>
+	 * Note that {@linkplain Color} implements Paint
+	 * @param bg The desired background paint
+	 */
+	public void setFillPaint(Paint fill) {
+		this.fill = fill;
 	}
 	
 	/**
 	 * Sets a {@linkplain Sprite} to be displayed when drawing the {@linkplain World}. This sprite will be drawn
 	 * centered at (0,0)
-	 * @param bg The desired image
+	 * @param fill The desired image
 	 */
-	public void setBackgroundSprite(Sprite bg) {
-		panel.bgImage = bg;
+	public void setFillSprite(Sprite fill) {
+		panel.bgImage = fill;
 	}
 	
 	/**
