@@ -85,10 +85,8 @@ public class World {
 		@Override
 		public void paintComponent(Graphics g) {
 			Graphics2D g2 = (Graphics2D) g.create();
-			if(size != null) {
-				g2.setPaint(bg);
-				g2.fillRect(0, 0, getWidth(), getHeight());
-			}
+			g2.setPaint(bg);
+			g2.fillRect(0, 0, getWidth(), getHeight());
 			g2.transform(getWorldTransform());
 			
 			if(size != null) {
