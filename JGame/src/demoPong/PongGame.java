@@ -21,7 +21,7 @@ public class PongGame extends Game {
 		world.setSize(new Dimension(640,480));
 		world.setFillPaint(Color.BLACK);
 		world.setBackground(Color.DARK_GRAY);
-		world.setZoomType(World.ZoomType.LETTERBOX);
+		world.setZoomType(World.ZoomType.STRETCH);
 		
 		world.add(playerLeft = new Paddle(true));
 		world.add(playerRight = new Paddle(false));

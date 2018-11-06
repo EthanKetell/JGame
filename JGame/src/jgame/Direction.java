@@ -46,6 +46,22 @@ public enum Direction {
 	}
 	
 	/**
+	 * Returns an array of the four cardinal directions: North, South, East, and West
+	 * @return Direction[] {NORTH, SOUTH, EAST, WEST}
+	 */
+	public static Direction[] cardinals() {
+		return new Direction[] {NORTH, SOUTH, EAST, WEST};
+	}
+	
+	/**
+	 * Returns an array of the four ordinal directions: Northeast, Northwest, Southeast, and Southwest
+	 * @return Direction[] {NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST}
+	 */
+	public static Direction[] ordinals() {
+		return new Direction[] {NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST};
+	}
+	
+	/**
 	 * Returns the angle equivalent to {@code degrees} within the range {@code (-180,180]}
 	 * @param degrees the angle to constrain
 	 * @return the constrained angle
