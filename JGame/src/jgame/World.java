@@ -12,6 +12,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -372,6 +373,14 @@ public class World {
 	 */
 	public void remove(Entity e) {
 		toRemove.add(e);
+	}
+	
+	/**
+	 * Removes all specified {@linkplain Entity Entities} from the {@linkplain World}
+	 * @param e The {@linkplain Collection} of Entities to remove
+	 */
+	public void removeAll(Collection<Entity> e) {
+		toRemove.addAll(e);
 	}
 
 	/**
