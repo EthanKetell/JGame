@@ -46,6 +46,33 @@ public enum Direction {
 	}
 	
 	/**
+	 * Returns the {@linkplain Direction} which is opposite (rotated 180 degrees) this one
+	 * @return the opposite direction
+	 */
+	public Direction opposite() {
+		switch(this) {
+		case EAST:
+			return WEST;
+		case SOUTHEAST:
+			return NORTHWEST;
+		case SOUTH:
+			return NORTH;
+		case SOUTHWEST:
+			return NORTHEAST;
+		case WEST:
+			return EAST;
+		case NORTHWEST:
+			return SOUTHWEST;
+		case NORTH:
+			return SOUTH;
+		case NORTHEAST:
+			return SOUTHWEST;
+		default:
+			return null;
+		}
+	}
+	
+	/**
 	 * Returns an array of the four cardinal directions: North, South, East, and West
 	 * @return Direction[] {NORTH, SOUTH, EAST, WEST}
 	 */
