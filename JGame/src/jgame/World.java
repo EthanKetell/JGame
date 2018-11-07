@@ -359,11 +359,11 @@ public class World {
 	 * @param y
 	 */
 	public void add(Entity e, double x, double y) {
+		toAdd.add(e);
 		e.x = x;
 		e.y = y;
 		e.world = this;
 		e.setup();
-		toAdd.add(e);
 	}
 	
 	/**
