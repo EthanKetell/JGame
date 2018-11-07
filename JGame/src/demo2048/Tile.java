@@ -1,7 +1,6 @@
 package demo2048;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -14,7 +13,6 @@ import jgame.*;
 /** The numbered squares that make up the point of this game */
 public class Tile extends Entity {
 
-	static Font numberFont = new Font("Verdana", Font.BOLD, 50);					// Stored statically to save memory
 	static Shape tileShape = new RoundRectangle2D.Double(-50,-50,100,100,20,20);	// Stored statically to save memory
 	
 	/** The colors to be used for tiles of different values */
@@ -77,7 +75,7 @@ public class Tile extends Entity {
 		super.paint(g);
 		
 		Graphics2D g2 = (Graphics2D)g;
-		g2.setFont(numberFont);
+		g2.setFont(NumberGame.font);
 		String text = ""+(int)Math.pow(2, 1+value); // Value increases linearly, but 2048 uses powers of 2
 		
 		//Calculate the x,y point to draw to center the text
@@ -121,9 +119,9 @@ public class Tile extends Entity {
 	private void slideToPos() {
 		int fx = -host.size.width/2  + 70 + 120*position.x;
 		int fy = -host.size.height/2 + 70 + 120*position.y;
-		this.dx = (fx-x)/Grid.slideFrames;
-		this.dy = (fy-y)/Grid.slideFrames;
-		this.moves = Grid.slideFrames;
+		this.dx = (fx-x)/NumberGame.framesToSlide;
+		this.dy = (fy-y)/NumberGame.framesToSlide;
+		this.moves = NumberGame.framesToSlide;
 	}
 	
 	/**

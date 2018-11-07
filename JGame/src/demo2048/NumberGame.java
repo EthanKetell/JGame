@@ -2,10 +2,14 @@ package demo2048;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 
 import jgame.*;
 
-public class NumberGame extends Game{
+public class NumberGame extends Game {
+	
+	public static final Font font = new Font("Verdana", Font.BOLD, 50);
+	public static final int framesToSlide = 10; // How many frames tiles should take per move
 	
 	Grid board;
 
@@ -71,7 +75,7 @@ public class NumberGame extends Game{
 		} else if(gameState == 3) { // Waiting to restart game
 			if(Controller.controlPressed("space")) {
 				world.removeAll(world.getAllOfType(Entity.class));
-				world.add(new Grid(4,4));
+				world.add(board = new Grid(board.width,board.height));
 				gameState = 0;
 			}
 		}

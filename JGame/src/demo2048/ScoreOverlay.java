@@ -1,6 +1,7 @@
 package demo2048;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -10,6 +11,8 @@ import jgame.*;
 
 /** Simple entity for fading out grid and displaying score after game over */
 public class ScoreOverlay extends Entity {
+	
+	private static final Font restartMessageFont = NumberGame.font.deriveFont(NumberGame.font.getSize()/4f);
 	
 	Grid host;
 	
@@ -22,7 +25,7 @@ public class ScoreOverlay extends Entity {
 		super.paint(g);
 		Graphics2D g2 = (Graphics2D)g;
 
-		g2.setFont(Tile.numberFont);
+		g2.setFont(NumberGame.font);
 		FontMetrics metrics = g.getFontMetrics();
 	    int y = metrics.getAscent() - metrics.getHeight();
 	    g2.setColor(Color.BLACK);
@@ -36,7 +39,7 @@ public class ScoreOverlay extends Entity {
 	    x = -metrics.stringWidth(text) / 2;
 	    g2.drawString(text, x, y);
 	    
-	    g2.setFont(Tile.numberFont.deriveFont(Tile.numberFont.getSize()/4f));
+	    g2.setFont(restartMessageFont);
 	    metrics = g.getFontMetrics();
 	    
 	    y += 2*metrics.getHeight();

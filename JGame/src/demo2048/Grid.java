@@ -13,8 +13,6 @@ import jgame.*;
 
 /** Class for drawing board and managing tiles */
 public class Grid extends Entity {
-
-	static final int slideFrames = 10;
 	
 	/**A mini-class to make it easier to step through the lines provided by {@code getLineIndices}*/
 	private class LineTracker {
@@ -40,7 +38,7 @@ public class Grid extends Entity {
 		}
 	}
 
-	int width, height, score, slideTime;
+	int width, height, score, slideFrames;
 	Tile[] tiles;
 	Dimension size;
 
@@ -64,8 +62,8 @@ public class Grid extends Entity {
 	
 	@Override
 	public void update() {
-		if(slideTime > 0) {
-			slideTime--;
+		if(slideFrames > 0) {
+			slideFrames--;
 		}
 	}
 
@@ -114,14 +112,14 @@ public class Grid extends Entity {
 			}
 		}
 		if(didMove) {
-			slideTime = Grid.slideFrames;
+			this.slideFrames = NumberGame.framesToSlide;
 		}
 		return didMove;
 	}
 	
 	/** Returns whether there is sliding in progress */
 	public boolean isSliding() {
-		return slideTime > 0;
+		return slideFrames > 0;
 	}
 	
 	/**
