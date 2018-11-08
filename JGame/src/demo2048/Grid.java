@@ -2,6 +2,8 @@ package demo2048;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -13,6 +15,8 @@ import jgame.*;
 
 /** Class for drawing board and managing tiles */
 public class Grid extends Entity {
+	
+	private static Font scoreFont = NumberGame.font.deriveFont(30f);
 	
 	/**A mini-class to make it easier to step through the lines provided by {@code getLineIndices}*/
 	private class LineTracker {
@@ -74,6 +78,13 @@ public class Grid extends Entity {
 
 		g2.setColor(new Color(0xBBADA0)); // Background color
 		g2.fillRoundRect(0, 0, size.width, size.height, 20, 20);
+		
+		g2.setFont(scoreFont);
+		FontMetrics metrics = g2.getFontMetrics();
+		String text = "Score: "+score;
+		g2.fillRoundRect(0,-55,20+metrics.stringWidth(text),50,20,20);
+		g2.setColor(new Color(0xF9F6F2));
+		g2.drawString(text, 10, -30-metrics.getHeight()/2 + metrics.getAscent());
 
 		g2.setColor(new Color(0xCDC1B4)); // Empty tile color
 		for (int y = 0; y < height; y++) {
