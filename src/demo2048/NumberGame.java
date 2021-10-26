@@ -27,10 +27,10 @@ public class NumberGame extends Game {
 
 	/**
 	 * Tracks which step the game is on
-	 * </br>0 = waiting for input from the user
-	 * </br>1 = sliding the tiles
-	 * </br>2 = adding a new tile
-	 * </br>3 = waiting to restart after game over
+	 * <br>0 = waiting for input from the user
+	 * <br>1 = sliding the tiles
+	 * <br>2 = adding a new tile
+	 * <br>3 = waiting to restart after game over
 	 */
 	int gameState = 0;
 	protected void update() {

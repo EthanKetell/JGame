@@ -28,7 +28,7 @@ public abstract class Entity {
 		/**
 		 * {@linkplain Entity Entities} with this rotation mode will be flipped horizontally
 		 * to face toward their rotation.
-		 * </br></br>
+		 * <br><br>
 		 * More specifically, the Entity will be mirrored via {@linkplain AffineTransform#scale(double, double)
 		 * AffineTransform.scale(-1,1)} when {@code Math.abs(rotation) > 90}
 		 * @see RotationMode
@@ -49,17 +49,17 @@ public abstract class Entity {
 	
 	/** 
 	 * The horizontal position of the {@linkplain Entity}.
-	 * </br>Increasing values move the Entity rightwards.
+	 * <br>Increasing values move the Entity rightwards.
 	 */
 	public double x;
 	/** 
 	 * The vertical position of the {@linkplain Entity}.
-	 * </br>Increasing values move the Entity downwards.
+	 * <br>Increasing values move the Entity downwards.
 	 */
 	public double y;
 	/** 
 	 * The orientation of the {@linkplain Entity}, in degrees.
-	 * </br>Increasing values rotate the Entity clockwise.
+	 * <br>Increasing values rotate the Entity clockwise.
 	 */
 	public double rotation;
 	
@@ -71,7 +71,7 @@ public abstract class Entity {
 	/**
 	 * The {@link Shape} of this {@link Entity} which is used for collisions, and, if no {@link
 	 * Entity#sprite} is set, drawing to the {@link World}.
-	 * </br>This shape should be centered about the point (0,0)
+	 * <br>This shape should be centered about the point (0,0)
 	 */
 	public Shape shape = null;
 	
@@ -111,17 +111,18 @@ public abstract class Entity {
 	public abstract void setup();
 	
 	/**
-	 * This method is called every time the {@linkplain World} updates, based on it's specified {@linkplain
-	 * World#(double) framerate}. All game logic, like movement or combat, should be implemented here.
+	 * This method is called every time the {@link Game} updates, based on it's specified framerate.
+	 * All game logic, like movement or combat, should be implemented here.
+	 * @see Game#setFramerate(double)
 	 */
 	public abstract void update();
 	
 	/**
 	 * Returns an {@linkplain Entity} of the specified type which collides with this one,
 	 * if one exists, else returns {@code null}.
-	 * </br></br>
+	 * <br><br>
 	 * Example usage: If {@code class Enemy extends Entity}, a colliding Enemy could be retrieved with
-	 * </br>{@code Enemy e = collisionWithType(Enemy.class)}
+	 * <br>{@code Enemy e = collisionWithType(Enemy.class)}
 	 * @param <T> The class to check for collisions with. Must be a subclass of Entity.
 	 * @param type The class to check for a collision with. Must be a subclass of Entity.
 	 * @return An Entity which overlaps this one, or {@code null} if there are none.
@@ -138,9 +139,9 @@ public abstract class Entity {
 	/**
 	 * Returns a {@linkplain List} of all {@linkplain Entity Entities} of the specified type which collide
 	 *  with this one.
-	 * </br></br>
+	 * <br><br>
 	 * Example usage: If {@code class Enemy extends Entity}, all colliding Enemies could be retrieved with
-	 * </br>{@code Enemy e = collisionsWithType(Enemy.class)}
+	 * <br>{@code Enemy e = collisionsWithType(Enemy.class)}
 	 * @param <T> The class to check for collisions with. Must be a subclass of Entity.
 	 * @param type The class to check for a collision with. Must be a subclass of Entity.
 	 * @return An List containing all Entities which overlap this one
@@ -254,7 +255,7 @@ public abstract class Entity {
 	/**
 	 * Applies the appropriate transform to the passed {@linkplain Graphics} object, then passed it to
 	 * {@linkplain Entity#paint(Graphics)}.
-	 * </br></br>
+	 * <br><br>
 	 * Override this method if you want to control whether to respect the Entity's position, otherwise override
 	 * {@linkplain Entity#paint(Graphics)}
 	 * @param g The untransformed graphics to draw on
@@ -278,7 +279,7 @@ public abstract class Entity {
 	/**
 	 * Draws the {@linkplain Entity} to the given {@linkplain Graphics} object. This Graphics will already
 	 * have the appropriate transformations applied, based on this Entity's x, y, rotation, and rotationMode
-	 * </br></br>
+	 * <br><br>
 	 * Overriding this method is the preferred way to change how an Entity draws.
 	 * @param g The transformed graphics to draw on
 	 */

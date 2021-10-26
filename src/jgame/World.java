@@ -259,7 +259,7 @@ public class World {
 	
 	/**
 	 * Sets the {@linkplain Paint} to be used filling the parts of the window not covered by the {@linkplain World}.
-	 * </br></br>
+	 * <br><br>
 	 * Note that {@linkplain Color} implements Paint
 	 * @param bg The desired background paint
 	 */
@@ -269,7 +269,7 @@ public class World {
 	
 	/**
 	 * Sets the {@linkplain Paint} to be used when drawing the {@linkplain World}
-	 * </br></br>
+	 * <br><br>
 	 * Note that {@linkplain Color} implements Paint
 	 * @param fill The desired background paint
 	 */
@@ -304,9 +304,9 @@ public class World {
 	
 	/**
 	 * Returns a list of all {@linkplain Entity Entities} in the world which extend the specified class.
-	 * </br></br>
+	 * <br><br>
 	 * Example usage: If {@code class Enemy extends Entity}, all Enemies could be collected via
-	 * </br>{@code List<Enemy> enemies = world.getAllOfType(Enemy.class)}
+	 * <br>{@code List<Enemy> enemies = world.getAllOfType(Enemy.class)}
 	 * @param <T> The class to collect. Must be a subclass of Entity
 	 * @param type The class to collect. Must be a subclass of Entity 
 	 * @return A {@linkplain List} containing all the Entities in the world which

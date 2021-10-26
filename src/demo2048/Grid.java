@@ -139,7 +139,7 @@ public class Grid extends Entity {
 	
 	/**
 	 * Returns whether the specified point is within the bounds of the grid
-	 * </br> i.e. {@code (0 <= x < width) && (0 <= y < height)}
+	 * <br> i.e. {@code (0 <= x < width) && (0 <= y < height)}
 	 * @param p The point to check
 	 * @return Whether the point is on the grid
 	 */
