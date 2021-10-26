@@ -1,15 +1,8 @@
 package jgame;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.FileDialog;
-import java.awt.Frame;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.TexturePaint;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -17,44 +10,16 @@ import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.io.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import javax.imageio.ImageIO;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSlider;
-import javax.swing.JSplitPane;
-import javax.swing.JTextField;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-
-@SuppressWarnings("unchecked")
 public class Images {
 	
 	private static class ImagePanel extends JPanel {
+		@Serial
 		private static final long serialVersionUID = 1L;
-		private static TexturePaint tex;
+		private static final TexturePaint tex;
 		BufferedImage activeImage;
 		
 		double scale = 1, rotation = 0;
@@ -109,13 +74,13 @@ public class Images {
 		}
 	}
 	private static Map<String, String> filePaths;
-	private static Map<String, BufferedImage> images;
-	private static String imageFolder = "res"+File.separator+"images"+File.separator;
+	private static final Map<String, BufferedImage> images;
+	private static final String imageFolder = "res"+File.separator+"images"+File.separator;
 	
 	static {		//Retrieve saved image map
 		File f = new File(imageFolder);
 		if(!f.exists()) f.mkdirs();
-		images = new HashMap<String, BufferedImage>();
+		images = new HashMap<>();
 		f = new File("res"+File.separator+"images"+File.separator+"images.dat");
 		try {
 			FileInputStream fis = new FileInputStream(f);
@@ -124,16 +89,16 @@ public class Images {
 			ois.close();
 			fis.close();
 		} catch (FileNotFoundException e) {
-			Game.debugPrint("Could not find \'"+f.getPath()+"\'");
+			Game.debugPrint("Could not find '"+f.getPath()+"'");
 		} catch (IOException e) {
 			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			System.err.println("\'"+f.getPath()+"\' seems to be corrupt. Fix or delete it.");
+		} catch (ClassNotFoundException | ClassCastException e) {
+			System.err.println("'"+f.getPath()+"' seems to be corrupt. Fix or delete it.");
 			e.printStackTrace();
 		}
 		if(filePaths == null) {
 			Game.debugPrint("Saved imagename Map is null, creating a new one");
-			filePaths = new HashMap<String,String>();
+			filePaths = new HashMap<>();
 		}
 		for(String name : filePaths.keySet()) {
 			retrieveImage(name, localizePath(filePaths.get(name)));
@@ -159,12 +124,12 @@ public class Images {
 		JPanel leftPanel = new JPanel();
 		leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
 		
-		DefaultListModel<String> imageNames = new DefaultListModel<String>();
+		DefaultListModel<String> imageNames = new DefaultListModel<>();
 		for(String name : Images.getSpriteNames()) {
 			imageNames.addElement(name);
 		}
 		
-		JList<String> listPane = new JList<String>(imageNames);
+		JList<String> listPane = new JList<>(imageNames);
 		
 		JScrollPane listScroll = new JScrollPane();
 		listScroll.getViewport().add(listPane);
@@ -174,22 +139,18 @@ public class Images {
 		JButton addButton = new JButton("+");
 		JButton removeButton = new JButton("-");
 		
-		addButton.addActionListener(e->{
-				openAddImageWindow(listPane);
-			});
+		addButton.addActionListener(e-> openAddImageWindow(listPane));
 		
 		removeButton.addActionListener(e->{
 				List<String> names = listPane.getSelectedValuesList();
 				int response;
-				if(names.size() == 0) {
-					return;
-				} else {
+				if(names.size() != 0) {
 					if(names.size() == 1) {
-						response = JOptionPane.showConfirmDialog(frame,"Are you sure you want to remove \'"+names.get(0)+"\'?", "Confirm Deletion", JOptionPane.YES_NO_OPTION);
+						response = JOptionPane.showConfirmDialog(frame, "Are you sure you want to remove '" +names.get(0)+ "'?", "Confirm Deletion", JOptionPane.YES_NO_OPTION);
 					} else {
-						String selection = "";
+						StringBuilder selection = new StringBuilder();
 						for(String name : names) {
-							selection = selection + name + ((names.indexOf(name)<names.size()-1)?", ":"");
+							selection.append(name).append((names.indexOf(name) < names.size() - 1) ? ", " : "");
 						}
 						response = JOptionPane.showConfirmDialog(frame,"Are you sure you want to remove all of the following?\n\n"+selection, "Confirm Deletion", JOptionPane.YES_NO_OPTION);
 					}
@@ -289,17 +250,14 @@ public class Images {
 			}
 		});
 		
-		listPane.addListSelectionListener(new ListSelectionListener() {
-			@Override
-			public void valueChanged(ListSelectionEvent e) {
-				String name = listPane.getSelectedValue();
-				if(name != null) {
-					imageDisplay.setActiveImage(images.get(name));
-				} else {
-					imageDisplay.setActiveImage(null);
-				}
-				imageScroll.getViewport().revalidate();
+		listPane.addListSelectionListener(e -> {
+			String name = listPane.getSelectedValue();
+			if(name != null) {
+				imageDisplay.setActiveImage(images.get(name));
+			} else {
+				imageDisplay.setActiveImage(null);
 			}
+			imageScroll.getViewport().revalidate();
 		});
 		
 		listScroll.setBackground(frame.getBackground());
@@ -342,20 +300,18 @@ public class Images {
 		pathEntry.add(Box.createHorizontalGlue());
 		pathEntry.add(pathEntryField);
 		JButton pathSelect = new JButton("...");
-		pathSelect.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				String file = selectFile("Select an image");
-				pathEntryField.setText(file);
-				if(file != null && nameEntryField.getText().equals("")) {
-					int
-					lastSeparator = file.lastIndexOf(File.separator),
-					dot = file.lastIndexOf('.');
-					if(lastSeparator >= 0
-							&& dot >= 0
-							&& lastSeparator < file.length()-1
-							&& dot < file.length()) {
-						nameEntryField.setText(file.substring(lastSeparator+1, dot));
-					}
+		pathSelect.addActionListener(e -> {
+			String file = selectFile();
+			pathEntryField.setText(file);
+			if(file != null && nameEntryField.getText().equals("")) {
+				int
+				lastSeparator = file.lastIndexOf(File.separator),
+				dot = file.lastIndexOf('.');
+				if(lastSeparator >= 0
+						&& dot >= 0
+						&& lastSeparator < file.length()-1
+						&& dot < file.length()) {
+					nameEntryField.setText(file.substring(lastSeparator+1, dot));
 				}
 			}
 		});
@@ -370,34 +326,28 @@ public class Images {
 		JPanel controlButtons = new JPanel();
 		controlButtons.setLayout(new BoxLayout(controlButtons,BoxLayout.X_AXIS));
 		JButton button = new JButton("Cancel");
-		button.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				frame.dispose();
-			}
-		});
+		button.addActionListener(e -> frame.dispose());
 		controlButtons.add(button);
 		controlButtons.add(Box.createHorizontalGlue());
 		button = new JButton("Confirm");
 		button.setSelected(true);
-		button.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				String 	name = nameEntryField.getText(),
-						path = pathEntryField.getText();
-				boolean hasName = !name.equals(""),
-						hasPath = !path.equals("");
-				if(hasName && hasPath) {
-					Images.retrieveImage(name, path);
-					((DefaultListModel<String>)nameList.getModel()).addElement(name);
-					nameList.setSelectedValue(name, true);
-					frame.dispose();
+		button.addActionListener(e -> {
+			String 	name = nameEntryField.getText(),
+					path = pathEntryField.getText();
+			boolean hasName = !name.equals(""),
+					hasPath = !path.equals("");
+			if(hasName && hasPath) {
+				Images.retrieveImage(name, path);
+				((DefaultListModel<String>)nameList.getModel()).addElement(name);
+				nameList.setSelectedValue(name, true);
+				frame.dispose();
+			} else {
+				if(hasName) {
+					JOptionPane.showMessageDialog(frame, "Make sure to select a file!", "Missing path",JOptionPane.ERROR_MESSAGE);
+				} else if(hasPath) {
+					JOptionPane.showMessageDialog(frame, "Make sure to name your image!", "Missing name",JOptionPane.ERROR_MESSAGE);
 				} else {
-					if(hasName) {
-						JOptionPane.showMessageDialog(frame, "Make sure to select a file!", "Missing path",JOptionPane.ERROR_MESSAGE);
-					} else if(hasPath) {
-						JOptionPane.showMessageDialog(frame, "Make sure to name your image!", "Missing name",JOptionPane.ERROR_MESSAGE);
-					} else {
-						JOptionPane.showMessageDialog(frame, "Select an image using the \'...\' button,\nthen name it in the box labelled name!", "Missing name and path",JOptionPane.ERROR_MESSAGE);
-					}
+					JOptionPane.showMessageDialog(frame, "Select an image using the '...' button,\nthen name it in the box labelled name!", "Missing name and path",JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		});
@@ -417,10 +367,10 @@ public class Images {
 		
 	}
 	
-	private static String selectFile(String title) {
-		FileDialog fd = new FileDialog((Frame)null, title, FileDialog.LOAD);
+	private static String selectFile() {
+		FileDialog fd = new FileDialog((Frame)null, "Select an image", FileDialog.LOAD);
 		fd.setFilenameFilter(new FilenameFilter() {
-			List<String> extensions = Arrays.asList(".png",".tif",".tiff",".bmp",".jpg",".jpeg",".gif");
+			final List<String> extensions = Arrays.asList(".png",".tif",".tiff",".bmp",".jpg",".jpeg",".gif");
 			
 			public boolean accept(File dir, String name) {
 				int dotIndex = name.lastIndexOf('.');
@@ -453,19 +403,18 @@ public class Images {
 	 * instead use {@link Images#getSprite(String) getImage}
 	 * @param name The name of the image to be used in the {@link Images#getSprite(String) getImage} method
 	 * @param path The file path of the image
-	 * @return Whether the image was retrieved successfully
-	 * @see {@link java.io.File}
-	 * @see {@link java.awt.BufferedImage}
+	 * @see java.io.File
+	 * @see BufferedImage
 	 */
-	private static boolean retrieveImage(String name, String path) {
+	private static void retrieveImage(String name, String path) {
 		File f = new File(path);
-		BufferedImage image = null;
+		BufferedImage image;
 		try {
 			image = ImageIO.read(f);
 			images.put(name, image);
 		} catch(IOException e) {
 			System.err.println("Could not retrieve image "+path);
-			return false;
+			return;
 		}
 		File newFile = new File(imageFolder+name+".png");
 		if(!f.equals(newFile)) {
@@ -480,7 +429,6 @@ public class Images {
 			}
 		}
 		filePaths.put(name, newFile.getPath());
-		return true;
 	}
 	
 	/**
@@ -543,7 +491,6 @@ public class Images {
 	 * @return A Set containing Strings
 	 */
 	public static Set<String> getSpriteNames(){
-		((HashMap<String,BufferedImage>)images).keySet();
 		return images.keySet();
 	}
 	
@@ -554,27 +501,27 @@ public class Images {
 		File f = new File(imageFolder+"images.dat");
 		try {
 			if(f.exists()) {
-				Game.debugPrint("Deleting old version of \'"+f.getPath()+"\'");
+				Game.debugPrint("Deleting old version of '" +f.getPath()+ "'");
 				f.delete();
 			}
-			Game.debugPrint("Creating \'"+f.getPath()+"\'");
+			Game.debugPrint("Creating '" +f.getPath()+ "'");
 			f.createNewFile();
 		} catch(IOException e) {
-			System.err.println("Failed to create file \'"+f.getPath()+"\'");
+			System.err.println("Failed to create file '" +f.getPath()+ "'");
 			e.printStackTrace();
 		}
 		try {
 			FileOutputStream fos = new FileOutputStream(f);
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
-			Game.debugPrint("Writing \'"+f.getPath()+"\'");
+			Game.debugPrint("Writing '" +f.getPath()+ "'");
 			oos.writeObject(filePaths);
 			oos.close();
 			fos.close();
 		} catch (FileNotFoundException e) {
-			System.err.println("Could not find \'images.dat,\' this should not happen");
+			System.err.println("Could not find 'images.dat,' this should not happen");
 			e.printStackTrace();
 		} catch (IOException e) {
-			System.err.println("Failed to create outputstream to \'images.dat\'");
+			System.err.println("Failed to create outputstream to 'images.dat'");
 			e.printStackTrace();
 		}
 		for(String name : images.keySet()) {
@@ -603,8 +550,8 @@ public class Images {
 		BufferedImage out = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g = (Graphics2D)out.getGraphics();
 		AffineTransform transform = new AffineTransform();
-		transform.translate((newWidth-image.getWidth())/2, (newHeight-image.getHeight())/2);
-		transform.rotate(radians, image.getWidth()/2, image.getHeight()/2);
+		transform.translate((newWidth-image.getWidth())/2.0, (newHeight-image.getHeight())/2.0);
+		transform.rotate(radians, image.getWidth()/2.0, image.getHeight()/2.0);
 		
 		g.setTransform(transform);
 		g.drawImage(image,0,0, null);
@@ -638,8 +585,8 @@ public class Images {
 	 * @param image The image to transform
 	 * @param radians The angle to rotate the image by
 	 * @param sx The factor to scale the width of the image by
-	 * @Param sy The factor to scale the height of the image by
-	 * @return A copy of {@link image} with the transformations applied
+	 * @param sy The factor to scale the height of the image by
+	 * @return A copy of {@link BufferedImage image} with the transformations applied
 	 */
 	public static BufferedImage transformImage(BufferedImage image, double radians, double sx, double sy) {
 		int scaleWidth = (int)(image.getWidth() * sx);
@@ -650,8 +597,8 @@ public class Images {
 		BufferedImage out = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
 		
 		AffineTransform transform = new AffineTransform();
-		transform.translate((newWidth-scaleWidth)/2, (newHeight-scaleHeight)/2);
-		transform.rotate(radians, scaleWidth/2, scaleHeight/2);
+		transform.translate((newWidth-scaleWidth)/2.0, (newHeight-scaleHeight)/2.0);
+		transform.rotate(radians, scaleWidth/2.0, scaleHeight/2.0);
 		transform.scale(sx, sy);
 		
 		Graphics2D g2 = (Graphics2D)out.getGraphics();

@@ -4,15 +4,16 @@ import java.awt.image.BufferedImage;
 
 public class Animation extends Sprite {
 	
-	private BufferedImage[] frames;
+	private final BufferedImage[] frames;
 	private int index;
-	private long delay, lastUpdate;
+	private final long delay;
+	private long lastUpdate;
 
 	
 	/**
 	 * Creates an {@linkplain Animation} object with the given frames, and the specified framerate. The Animation will
 	 * cycle through the images of the array, in order, returning the appropriate frame based on the system time.
-	 * @param frames An array containing the frames to be played by the animation
+	 * @param sheet An array containing the frames to be played by the animation
 	 * @param fps The desired framerate for the Animation to play
 	 * @see Images#divideSpriteSheet(BufferedImage,int,int)
 	 */

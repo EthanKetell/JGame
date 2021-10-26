@@ -1,20 +1,9 @@
 package jgame;
 
-import java.awt.Point;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.awt.*;
+import java.awt.event.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public abstract class Controller {
 	
@@ -77,7 +66,7 @@ public abstract class Controller {
 
 	public static ControllerListener listener = new ControllerListener();
 	
-	private static HashMap<Integer,Set<String>> controls = new HashMap<Integer,Set<String>>();
+	private static final HashMap<Integer,Set<String>> controls = new HashMap<>();
 	static {
 		addKeyBind("UP",KeyEvent.VK_UP);
 		addKeyBind("DOWN",KeyEvent.VK_DOWN);
@@ -90,18 +79,18 @@ public abstract class Controller {
 		addKeyBind("SPACE",KeyEvent.VK_SPACE);
 	}
 	
-	private static Set<String> 
-			controlsDown = new HashSet<String>(),
-			controlsPressed = new HashSet<String>();
-	private static Set<Integer>
-			keysDown = new HashSet<Integer>(),
-			keysPressed = new HashSet<Integer>(),
-			newKeysDown = new HashSet<Integer>(),
-			keysReleased = new HashSet<Integer>(),
-			mouseButtonsDown = new HashSet<Integer>(),
-			mouseButtonsPressed = new HashSet<Integer>(),
-			newMouseButtonsDown = new HashSet<Integer>(),
-			mouseButtonsReleased = new HashSet<Integer>();
+	private static final Set<String>
+			controlsDown = new HashSet<>();
+	private static final Set<String> controlsPressed = new HashSet<>();
+	private static final Set<Integer>
+			keysDown = new HashSet<>();
+	private static Set<Integer> keysPressed = new HashSet<>();
+	private static Set<Integer> newKeysDown = new HashSet<>();
+	private static final Set<Integer> keysReleased = new HashSet<>();
+	private static final Set<Integer> mouseButtonsDown = new HashSet<>();
+	private static Set<Integer> mouseButtonsPressed = new HashSet<>();
+	private static Set<Integer> newMouseButtonsDown = new HashSet<>();
+	private static final Set<Integer> mouseButtonsReleased = new HashSet<>();
 	
 	private static Point 
 		mouseMove = new Point(),
@@ -114,13 +103,13 @@ public abstract class Controller {
 	static void refresh() {
 		mouseButtonsDown.addAll(newMouseButtonsDown);
 		mouseButtonsPressed = newMouseButtonsDown;
-		newMouseButtonsDown = new HashSet<Integer>();
+		newMouseButtonsDown = new HashSet<>();
 		mouseButtonsDown.removeAll(mouseButtonsReleased);
 		mouseButtonsReleased.clear();
 		
 		keysDown.addAll(newKeysDown);
 		keysPressed = newKeysDown;
-		newKeysDown = new HashSet<Integer>();
+		newKeysDown = new HashSet<>();
 		keysDown.removeAll(keysReleased);
 		keysReleased.clear();
 		
@@ -138,16 +127,16 @@ public abstract class Controller {
 	}
 	
 	/**
-	 * Binds the specified key to the named control
-	 * </br></br>
+	 * Binds the specified key to the named control.
+	 * <br><br>
 	 * More accurately, makes it so that if the specified key is pressed, the named control will be added to the lists
 	 * for {@linkplain Controller#controlDown(String)} and {@linkplain Controller#controlPressed(String)}
-	 * @param control The control to add to the the key
+	 * @param control The control to add to the key
 	 * @param keyCode The key code of the key to bind
 	 */
 	public static void addKeyBind(String control, int keyCode) {
 		if(!controls.containsKey(keyCode)) {
-			controls.put(keyCode, new HashSet<String>());
+			controls.put(keyCode, new HashSet<>());
 		}
 		controls.get(keyCode).add(control.toUpperCase());
 	}
@@ -192,7 +181,7 @@ public abstract class Controller {
 	 * @return whether any binding has more than one key
 	 */
 	private static boolean hasMultiKeys() {
-		Set<String> binds = new HashSet<String>();
+		Set<String> binds = new HashSet<>();
 		for(Set<String> set : controls.values()) {
 			for(String str : set) {
 				if(binds.contains(str)) {
@@ -219,7 +208,8 @@ public abstract class Controller {
 	 */
 	public static void printKeyBinds(boolean sortByBind) {
 		class Binding implements Comparable<Binding>{
-			String key,bind;
+			final String key;
+			final String bind;
 			Binding(String key, String bind){
 				this.key = key;
 				this.bind = bind;
@@ -233,7 +223,7 @@ public abstract class Controller {
 				}
 			}
 		}
-		List<Binding> toPrint = new ArrayList<Binding>();
+		List<Binding> toPrint = new ArrayList<>();
 		for(Map.Entry<Integer, Set<String>> entry : controls.entrySet()) {
 			String key = entry.getKey()+" ("+KeyEvent.getKeyText(entry.getKey())+")";
 			for(String bind : entry.getValue()) {
@@ -245,16 +235,16 @@ public abstract class Controller {
 			width = Math.max(width, Math.max(s.key.length(), s.bind.length())+1);
 		}
 		Collections.sort(toPrint);
-		System.out.println(String.format("|%"+width+"s|%-"+width+"s|","Key","Bind"));
+		System.out.printf("|%"+width+"s|%-"+width+ "s|%n","Key","Bind");
 		for(Binding b : toPrint) {
-			System.out.println(String.format("|%-"+width+"s|%"+width+"s|", b.key, b.bind));
+			System.out.printf("|%-"+width+"s|%"+width+ "s|%n", b.key, b.bind);
 		}
 	}
 	
 	/**
 	 * Returns whether the key corresponding to the specified key code is currently down. This returns
 	 * {@code true} as long as the key is down.
-	 * </br></br><b>Note:</b> This checks all keys, not just those with {@linkplain Controller#addKeyBind(String, int) assigned} controls
+	 * <br><br><b>Note:</b> This checks all keys, not just those with {@linkplain Controller#addKeyBind(String, int) assigned} controls
 	 * @param keyCode The key code to check
 	 * @return Whether the specified key is down
 	 * @see Controller#keyPressed(int)
@@ -267,7 +257,7 @@ public abstract class Controller {
 	/**
 	 * Returns whether the key corresponding to the specified key code was pressed since the last refresh. This returns
 	 * {@code true} as long as the key is down.
-	 * </br></br><b>Note:</b> This checks all keys, not just those with {@linkplain Controller#addKeyBind(String, int) assigned} controls
+	 * <br><br><b>Note:</b> This checks all keys, not just those with {@linkplain Controller#addKeyBind(String, int) assigned} controls
 	 * @param keyCode The key code to check
 	 * @return Whether the specified key has been pressed
 	 * @see Controller#keyDown(int)
@@ -302,7 +292,7 @@ public abstract class Controller {
 	 * Returns whether the specified control is currently being held. This returns {@code true} as long as the key is down.
 	 * @param control The name of the control to check
 	 * @return Whether the named control is being held
-	 * @see {@linkplain Controller#registerKeyInput(String, int)} to register controls
+	 * @see Controller#addKeyBind(String, int)  to register controls
 	 * @see Controller#controlPressed(String)
 	 * @see Controller#keyDown(int)
 	 */
@@ -314,7 +304,7 @@ public abstract class Controller {
 	 * Returns whether the specified control was pressed since the last refresh. This returns {@code true} only once per press of a given key.
 	 * @param control The name of the control to check
 	 * @return Whether the named control has been pressed
-	 * @see {@linkplain Controller#registerKeyInput(String, int)} to register controls
+	 * @see Controller#addKeyBind(String, int)  to register controls
 	 * @see Controller#controlDown(String)
 	 * @see Controller#keyPressed(int)
 	 */
@@ -324,7 +314,7 @@ public abstract class Controller {
 	
 	/**
 	 * Returns the current position of the mouse.
-	 * </br></br><b>Note:</b> This position is relative to the source window, use {@linkplain World#convertToWorldCoordinates(Point)}
+	 * <br><br><b>Note:</b> This position is relative to the source window, use {@linkplain World#convertToWorldCoordinates(Point)}
 	 * to get the point relative to the world.
 	 * @return the current position of the mouse
 	 */

@@ -1,9 +1,8 @@
 package jgame;
 
-import java.awt.Dimension;
-import java.awt.Rectangle;
-import java.awt.Shape;
+import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 import java.util.Iterator;
 
 public class Sprite implements Iterable<Sprite> {
@@ -108,19 +107,7 @@ public class Sprite implements Iterable<Sprite> {
 
 	@Override
 	public Iterator<Sprite> iterator() {
-		return new Iterator<Sprite>() {
-			int index = 0;
-
-			@Override
-			public boolean hasNext() {
-				return index < frames.length;
-			}
-
-			@Override
-			public Sprite next() {
-				return frames[index++];
-			}
-		};
+		return Arrays.asList(frames).iterator();
 	}
 	
 }
