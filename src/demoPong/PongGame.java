@@ -13,8 +13,7 @@ public class PongGame extends Game {
 	static Paddle playerLeft, playerRight;
 	
 	public static void main(String[] args) {
-//		new PongGame().start();
-		Images.manage();
+		new PongGame().start();
 	}
 	
 	@Override
