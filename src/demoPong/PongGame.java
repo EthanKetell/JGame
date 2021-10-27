@@ -35,7 +35,7 @@ public class PongGame extends Game {
 	@Override
 	protected void update() {
 		if(playerLeft.score > 9 || playerRight.score > 9) {
-			world.setFillSprite(Images.getSprite("pong_win_"+((playerLeft.score > 9)?"left":"right")));
+			world.setFillSprite(Images.getSprite("pong_win_"+((playerLeft.score > 9)?"left":"right")+".png"));
 			world.pause(true);
 			playerLeft.score = 0;
 			playerRight.score = 0;

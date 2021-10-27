@@ -11,462 +11,46 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.URL;
 import java.util.List;
 import java.util.*;
 
 public class Images {
-	
-	private static class ImagePanel extends JPanel {
-		@Serial
-		private static final long serialVersionUID = 1L;
-		private static final TexturePaint tex;
-		BufferedImage activeImage;
-		
-		double scale = 1, rotation = 0;
-		
-		static {
-			BufferedImage texBase = new BufferedImage(10,10,BufferedImage.TYPE_INT_ARGB);
-			Graphics g = texBase.getGraphics();
-			g.setColor(new Color(0xAAAAAA));
-			g.fillRect(0, 0, 10, 10);
-			g.setColor(new Color(0xCCCCCC));
-			g.fillRect(0, 0, 5, 5);
-			g.fillRect(5, 5, 10, 10);
-			g.dispose();
-			tex = new TexturePaint(texBase, new Rectangle2D.Double(0,0,10,10));
-		}
-		
-		public ImagePanel() {
-			super();
-			this.setPreferredSize(new Dimension(0,0));
-			this.setMinimumSize(new Dimension(0,0));
-		}
-		
-		public void setActiveImage(BufferedImage newImage) {
-			activeImage = newImage;
-			if(newImage != null) {
-				this.setPreferredSize(new Dimension(newImage.getWidth(),newImage.getHeight()));
-			} else {
-				this.setPreferredSize(new Dimension(0,0));
-			}
-			this.setMinimumSize(this.getPreferredSize());
-			this.repaint();
-		}
 
-		@Override
-		public void paintComponent(Graphics g) {
-			super.paintComponent(g);
-			Graphics2D g2 = (Graphics2D)g.create();
-			g2.setPaint(tex);
-			g2.fillRect(0, 0, getWidth(), getHeight());
-			
-			g2.translate(this.getWidth()/2, this.getHeight()/2);
-			g2.rotate(rotation);
-			g2.scale(scale, scale);
-			
-			if(activeImage != null) {
-				g2.drawImage(
-						activeImage,
-						-activeImage.getWidth()/2,
-						-activeImage.getHeight()/2,
-						null);
-			}
-		}
-	}
-	private static Map<String, String> filePaths;
-	private static final Map<String, BufferedImage> images;
-	private static final String imageFolder = "res"+File.separator+"images"+File.separator;
-	
-	static {		//Retrieve saved image map
-		File f = new File(imageFolder);
-		if(!f.exists()) f.mkdirs();
-		images = new HashMap<>();
-		f = new File("res"+File.separator+"images"+File.separator+"images.dat");
-		try {
-			FileInputStream fis = new FileInputStream(f);
-			ObjectInputStream ois = new ObjectInputStream(fis);
-			filePaths = (HashMap<String,String>)ois.readObject();
-			ois.close();
-			fis.close();
-		} catch (FileNotFoundException e) {
-			Game.debugPrint("Could not find '"+f.getPath()+"'");
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ClassNotFoundException | ClassCastException e) {
-			System.err.println("'"+f.getPath()+"' seems to be corrupt. Fix or delete it.");
-			e.printStackTrace();
-		}
-		if(filePaths == null) {
-			Game.debugPrint("Saved imagename Map is null, creating a new one");
-			filePaths = new HashMap<>();
-		}
-		for(String name : filePaths.keySet()) {
-			retrieveImage(name, localizePath(filePaths.get(name)));
-		}
-	}
-	
-	/**
-	 * Opens the image manager, allowing you to add images to the project.
-	 * @see Images#getSprite(String)
-	 */
-	public static void manage() {
-		
-		// Create the JFrame to store all components
-		
-		JFrame frame = new JFrame("Sprite Manager");
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.addWindowListener(new WindowAdapter() {
-			public void windowClosed(WindowEvent e) {
-				Images.save();
-			}
-		});
-		
-		JPanel leftPanel = new JPanel();
-		leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
-		
-		DefaultListModel<String> imageNames = new DefaultListModel<>();
-		for(String name : Images.getSpriteNames()) {
-			imageNames.addElement(name);
-		}
-		
-		JList<String> listPane = new JList<>(imageNames);
-		
-		JScrollPane listScroll = new JScrollPane();
-		listScroll.getViewport().add(listPane);
-		listScroll.setPreferredSize(new Dimension(60,240));
-		leftPanel.add(listScroll);
-		Box controlBox = Box.createHorizontalBox();
-		JButton addButton = new JButton("+");
-		JButton removeButton = new JButton("-");
-		
-		addButton.addActionListener(e-> openAddImageWindow(listPane));
-		
-		removeButton.addActionListener(e->{
-				List<String> names = listPane.getSelectedValuesList();
-				int response;
-				if(names.size() != 0) {
-					if(names.size() == 1) {
-						response = JOptionPane.showConfirmDialog(frame, "Are you sure you want to remove '" +names.get(0)+ "'?", "Confirm Deletion", JOptionPane.YES_NO_OPTION);
-					} else {
-						StringBuilder selection = new StringBuilder();
-						for(String name : names) {
-							selection.append(name).append((names.indexOf(name) < names.size() - 1) ? ", " : "");
-						}
-						response = JOptionPane.showConfirmDialog(frame,"Are you sure you want to remove all of the following?\n\n"+selection, "Confirm Deletion", JOptionPane.YES_NO_OPTION);
-					}
-					if(response == JOptionPane.YES_OPTION) {
-						for(String name : names) {
-							Images.removeImage(name);
-							imageNames.removeElementAt(imageNames.indexOf(name));
-						}
-						listPane.setSelectedIndex(-1);
-					}
-				}
-			});
-		
-		
-		
-		controlBox.add(removeButton);
-		controlBox.add(Box.createHorizontalGlue());
-		controlBox.add(addButton);
-		leftPanel.add(controlBox);
-		
-		listScroll.setBorder(BorderFactory.createCompoundBorder(
-				BorderFactory.createEmptyBorder(5,5,5,5),
-				BorderFactory.createLoweredBevelBorder()));
-				
-		JPanel rightPanel = new JPanel();
-		rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
-		ImagePanel imageDisplay = new ImagePanel();
-		JScrollPane imageScroll = new JScrollPane();
-		imageScroll.setPreferredSize(new Dimension(240,240));
-		imageScroll.getViewport().add(imageDisplay);
-		imageScroll.setBorder(BorderFactory.createCompoundBorder(
-				BorderFactory.createEmptyBorder(5,5,5,5),
-				BorderFactory.createLoweredBevelBorder()));
-		rightPanel.add(imageScroll);
-		
-		controlBox = Box.createHorizontalBox();
-		controlBox.add(Box.createHorizontalGlue());
-		
-		Box control = Box.createVerticalBox();
-		JLabel label = new JLabel("rotation");
-		label.setAlignmentX(Component.CENTER_ALIGNMENT);
-		control.add(label);
-		JSlider rotSlider = new JSlider(-4,4);
-		control.add(rotSlider);
-		
-		controlBox.add(control);
-		controlBox.add(Box.createHorizontalGlue());
-		
-		control = Box.createVerticalBox();
-		label = new JLabel("scale");
-		label.setAlignmentX(Component.CENTER_ALIGNMENT);
-		control.add(label);
-		JSlider scaleSlider = new JSlider(-100,100);
-		control.add(scaleSlider);
-		
-		controlBox.add(control);
-		controlBox.add(Box.createHorizontalGlue());
-		
-		rightPanel.add(controlBox);
-		
-		rotSlider.setSnapToTicks(true);
-		rotSlider.setPaintTicks(true);
-		rotSlider.setMajorTickSpacing(1);
-		rotSlider.addChangeListener(e->{
-			imageDisplay.rotation = rotSlider.getValue()*Math.PI/2;
-			imageDisplay.repaint();
-		});
-		rotSlider.addMouseListener(new MouseAdapter() {
-			public void mouseReleased(MouseEvent e) {
-				String name = listPane.getSelectedValue();
-				if(name != null) {
-					images.put(name, Images.rotateImage(images.get(name), imageDisplay.rotation));
-					imageDisplay.rotation = 0;
-					imageDisplay.setActiveImage(images.get(name));
-					imageScroll.getViewport().revalidate();
-				}
-				rotSlider.setValue(0);
-			}
-		});
-		
-		scaleSlider.setSnapToTicks(true);
-		scaleSlider.setMajorTickSpacing(10);
-		scaleSlider.addChangeListener(e->{
-			imageDisplay.scale = Math.pow(2, scaleSlider.getValue()/50.0);
-			imageDisplay.repaint();
-		});
-		scaleSlider.addMouseListener(new MouseAdapter() {
-			public void mouseReleased(MouseEvent e) {
-				String name = listPane.getSelectedValue();
-				if(name != null) {
-					images.put(name, Images.scaleImage(images.get(name), imageDisplay.scale));
-					imageDisplay.scale = 1;
-					imageDisplay.setActiveImage(images.get(name));
-					imageScroll.getViewport().revalidate();
-				}
-				scaleSlider.setValue(0);
-			}
-		});
-		
-		listPane.addListSelectionListener(e -> {
-			String name = listPane.getSelectedValue();
-			if(name != null) {
-				imageDisplay.setActiveImage(images.get(name));
-			} else {
-				imageDisplay.setActiveImage(null);
-			}
-			imageScroll.getViewport().revalidate();
-		});
-		
-		listScroll.setBackground(frame.getBackground());
-		imageScroll.setBackground(frame.getBackground());
-		
-		JSplitPane mainPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,leftPanel,rightPanel);
-		mainPanel.setContinuousLayout(true);
-		mainPanel.setDividerSize(3);
-		mainPanel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
-		frame.add(mainPanel);
-		
-		frame.pack();
-		frame.setMinimumSize(frame.getSize());
-		frame.setLocationRelativeTo(null);
-		frame.setVisible(true);
-	}
-	
-	private static void openAddImageWindow(JList<String> nameList) {
-		JFrame frame = new JFrame("Import new image");
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		JPanel host = new JPanel();
-		host.setLayout(new BoxLayout(host,BoxLayout.Y_AXIS));
-		host.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-		frame.add(host);
-		
-		JPanel nameEntry = new JPanel();
-		nameEntry.setLayout(new BoxLayout(nameEntry,BoxLayout.X_AXIS));
-		JTextField nameEntryField = new JTextField();
-		JLabel nameLabel = new JLabel("Name: ");
-		nameEntry.add(nameLabel);
-		nameEntry.add(Box.createHorizontalGlue());
-		nameEntry.add(nameEntryField);
-		
-		JPanel pathEntry = new JPanel();
-		pathEntry.setLayout(new BoxLayout(pathEntry,BoxLayout.X_AXIS));
-		JTextField pathEntryField = new JTextField();
-		pathEntryField.setEditable(false);
-		JLabel pathLabel = new JLabel("Path: ");
-		pathEntry.add(pathLabel);
-		pathEntry.add(Box.createHorizontalGlue());
-		pathEntry.add(pathEntryField);
-		JButton pathSelect = new JButton("...");
-		pathSelect.addActionListener(e -> {
-			String file = selectFile();
-			pathEntryField.setText(file);
-			if(file != null && nameEntryField.getText().equals("")) {
-				int
-				lastSeparator = file.lastIndexOf(File.separator),
-				dot = file.lastIndexOf('.');
-				if(lastSeparator >= 0
-						&& dot >= 0
-						&& lastSeparator < file.length()-1
-						&& dot < file.length()) {
-					nameEntryField.setText(file.substring(lastSeparator+1, dot));
-				}
-			}
-		});
-		pathEntry.add(pathSelect);
-		
-		nameLabel.validate();
-		pathLabel.validate();
-		Dimension labelSize = new Dimension(Math.max(nameLabel.getPreferredSize().width, pathLabel.getPreferredSize().width),nameLabel.getPreferredSize().height);
-		nameLabel.setPreferredSize(labelSize);
-		pathLabel.setPreferredSize(labelSize);
-		
-		JPanel controlButtons = new JPanel();
-		controlButtons.setLayout(new BoxLayout(controlButtons,BoxLayout.X_AXIS));
-		JButton button = new JButton("Cancel");
-		button.addActionListener(e -> frame.dispose());
-		controlButtons.add(button);
-		controlButtons.add(Box.createHorizontalGlue());
-		button = new JButton("Confirm");
-		button.setSelected(true);
-		button.addActionListener(e -> {
-			String 	name = nameEntryField.getText(),
-					path = pathEntryField.getText();
-			boolean hasName = !name.equals(""),
-					hasPath = !path.equals("");
-			if(hasName && hasPath) {
-				Images.retrieveImage(name, path);
-				((DefaultListModel<String>)nameList.getModel()).addElement(name);
-				nameList.setSelectedValue(name, true);
-				frame.dispose();
-			} else {
-				if(hasName) {
-					JOptionPane.showMessageDialog(frame, "Make sure to select a file!", "Missing path",JOptionPane.ERROR_MESSAGE);
-				} else if(hasPath) {
-					JOptionPane.showMessageDialog(frame, "Make sure to name your image!", "Missing name",JOptionPane.ERROR_MESSAGE);
-				} else {
-					JOptionPane.showMessageDialog(frame, "Select an image using the '...' button,\nthen name it in the box labelled name!", "Missing name and path",JOptionPane.ERROR_MESSAGE);
-				}
-			}
-		});
-		controlButtons.add(button);
-		
-		host.add(nameEntry);
-		host.add(pathEntry);
-		host.add(Box.createVerticalStrut(5));
-		host.add(controlButtons);
-		
-		frame.setPreferredSize(new Dimension(290,120));
-		frame.setMinimumSize(new Dimension(190,120));
-		frame.setMaximumSize(new Dimension(Integer.MAX_VALUE,120));
-		frame.pack();
-		frame.setLocationRelativeTo(null);
-		frame.setVisible(true);
-		
-	}
-	
-	private static String selectFile() {
-		FileDialog fd = new FileDialog((Frame)null, "Select an image", FileDialog.LOAD);
-		fd.setFilenameFilter(new FilenameFilter() {
-			final List<String> extensions = Arrays.asList(".png",".tif",".tiff",".bmp",".jpg",".jpeg",".gif");
-			
-			public boolean accept(File dir, String name) {
-				int dotIndex = name.lastIndexOf('.');
-				if(dotIndex > 0 && dotIndex < name.length()-1) {
-					String ext = name.substring(dotIndex).toLowerCase();
-					return extensions.contains(ext);
-				}
-				return false;
-			}
-		});
-		fd.setVisible(true);
-		String 	path = fd.getDirectory(),
-				file = fd.getFile();
-		if(file != null) {
-			if(path != null) {
-				return path+file;
-			} else {
-				return file;
-			}
-		} else {
-			return null;
-		}
-	}
-	
-	/**
-	 * Retrieves the image at the given file path and assigns it the given name.
-	 * Also handles formatting for future use, copying the image to the res/images folder,
-	 * and renaming it if it's name does not follow the convention {@code name}.png
-	 * <br><br>For use by the framework; do not use this function to get sprite images,
-	 * instead use {@link Images#getSprite(String) getImage}
-	 * @param name The name of the image to be used in the {@link Images#getSprite(String) getImage} method
-	 * @param path The file path of the image
-	 * @see java.io.File
-	 * @see BufferedImage
-	 */
-	private static void retrieveImage(String name, String path) {
-		File f = new File(path);
-		BufferedImage image;
-		try {
-			image = ImageIO.read(f);
-			images.put(name, image);
-		} catch(IOException e) {
-			System.err.println("Could not retrieve image "+path);
-			return;
-		}
-		File newFile = new File(imageFolder+name+".png");
-		if(!f.equals(newFile)) {
-			try {
-				ImageIO.write(image, "PNG", new File(imageFolder+name+".png"));
-				if(f.getParent() != null && f.getParent().equals(imageFolder)) {
-					f.delete();
-				}
-			} catch (IOException e) {
-				System.err.println("Could not write "+imageFolder+name+".png");
-				e.printStackTrace();
-			}
-		}
-		filePaths.put(name, newFile.getPath());
-	}
-	
-	/**
-	 * Removes the named image from the handler, and deletes it from the images folder.
-	 * <br><br>For use by the framework; do not use this function to remove images, instead
-	 * use the sprite manager.
-	 * @param name the name of the image to be removed
-	 */
-	private static void removeImage(String name) {
-		if(images.containsKey(name)) {
-			String path = filePaths.get(name);
-			File f = new File(path);
-			f.delete();
-			filePaths.remove(name);
-			images.remove(name);
-		}
-	}
-	
+	private static final Map<String, BufferedImage> images = new HashMap<>();
+
 	/**
 	 * Returns the {@linkplain BufferedImage} with the given name
-	 * @param name The name of the image to get
-	 * @return The image with the given name, or {@code null} if the name is not found
+	 * @param file The name of the image to get
+	 * @return The image with the given name
 	 */
-	public static BufferedImage getImage(String name) {
-		return images.get(name);
+	public static BufferedImage getImage(String file) {
+		if(images.containsKey(file)) {
+			return images.get(file);
+		} else {
+			InputStream input = ClassLoader.getSystemResourceAsStream(file);
+			if(input != null) {
+				try {
+					BufferedImage image = ImageIO.read(input);
+					images.put(file, image);
+				} catch (IOException e) {
+					System.err.println("Failed to read file: "+file);
+					e.printStackTrace();
+				}
+			} else {
+				System.err.println("Could not find: "+file);
+			}
+		}
+		return images.get(file);
 	}
 	
 	/**
 	 * Returns the {@linkplain Sprite} with the given name
 	 * @param name The name of the Sprite to get
-	 * @return The Sprite with the given name, or {@code null} if the name is not found
+	 * @return The Sprite with the given name
 	 */
 	public static Sprite getSprite(String name) {
-		if(images.containsKey(name)) {
-			return new Sprite(images.get(name));
-		} else {
-			return null;
-		}
+		return new Sprite(getImage(name));
 	}
 	
 	/**
@@ -478,66 +62,9 @@ public class Images {
 	 * @return The Sprite with the given name, or {@code null} if the name is not found
 	 */
 	public static Sprite getSprite(String name, int rows, int cols) {
-		if(images.containsKey(name)) {
-			return new Sprite(images.get(name), rows, cols);
-		} else {
-			return null;
-		}
+		return new Sprite(getImage(name), rows, cols);
 	}
-	
-	/**
-	 * Returns a {@link java.util.Set Set} containing the names of the images
-	 * available to the {@link Images#getSprite(String) getSprite} method
-	 * @return A Set containing Strings
-	 */
-	public static Set<String> getSpriteNames(){
-		return images.keySet();
-	}
-	
-	/**
-	 * Write the names and paths to a file to be loaded at a later date
-	 */
-	private static void save() {
-		File f = new File(imageFolder+"images.dat");
-		try {
-			if(f.exists()) {
-				Game.debugPrint("Deleting old version of '" +f.getPath()+ "'");
-				f.delete();
-			}
-			Game.debugPrint("Creating '" +f.getPath()+ "'");
-			f.createNewFile();
-		} catch(IOException e) {
-			System.err.println("Failed to create file '" +f.getPath()+ "'");
-			e.printStackTrace();
-		}
-		try {
-			FileOutputStream fos = new FileOutputStream(f);
-			ObjectOutputStream oos = new ObjectOutputStream(fos);
-			Game.debugPrint("Writing '" +f.getPath()+ "'");
-			oos.writeObject(filePaths);
-			oos.close();
-			fos.close();
-		} catch (FileNotFoundException e) {
-			System.err.println("Could not find 'images.dat,' this should not happen");
-			e.printStackTrace();
-		} catch (IOException e) {
-			System.err.println("Failed to create outputstream to 'images.dat'");
-			e.printStackTrace();
-		}
-		for(String name : images.keySet()) {
-			writeImage(name, images.get(name));
-		}
-	}
-	
-	private static void writeImage(String name, BufferedImage image) {
-		try {
-			ImageIO.write(image, "PNG", new File(imageFolder+name+".png"));
-		} catch(IOException e) {
-			System.err.println("Failed to write image "+imageFolder+name+".png");
-			e.printStackTrace();
-		}
-	}
-	
+
 	/**
 	 * Rotates an image counter-clockwise
 	 * @param image The {@link BufferedImage} to rotate
@@ -607,21 +134,6 @@ public class Images {
 		g2.dispose();
 		
 		return out;
-	}
-	
-	/**
-	 * Localizes the String path, replacing any forward/back slashes with the appropriate
-	 * version provided by {@link File#separatorChar}
-	 * @param path The path to be localized
-	 * @return The localized version of the path
-	 */
-	private static String localizePath(String path) {
-		if(File.separatorChar == '/') {
-			path = path.replace('\\', File.separatorChar);
-		} else {
-			path = path.replace('/', File.separatorChar);
-		}
-		return path;
 	}
 	
 	/**

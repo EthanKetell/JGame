@@ -10,7 +10,7 @@ public class Score extends Entity {
 	boolean onLeft;
 	
 	/** Sprite containing the digits 0-9 */
-	Sprite digits = Images.getSprite("pong_digits", 2, 5);
+	static final Sprite digits = Images.getSprite("pong_digits.png", 2, 5);
 	
 	/** The paddle whose score is displayed */
 	Paddle host;
